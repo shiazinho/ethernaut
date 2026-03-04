@@ -1,0 +1,1 @@
+cast send --account teste3 --rpc-url $RPC_URL --create 60048060093d393df35f5ffefe

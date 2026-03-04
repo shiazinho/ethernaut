@@ -1,0 +1,22 @@
+
+
+#define macro MAIN() = takes (0) returns (0) {
+	__FUNC_SIG("withdraw()") 0x00 mstore
+	
+    0x00                // [ret_size]
+    0x00                // [ret_offset, ret_size]
+    0x04                // [args_size, ret_offset, ret_size]
+    0x1C                // [args_offset, args_size, ret_offset, ret_size]
+    0x00                // [value, args_offset, args_size, ret_offset, ret_size]
+    0x6185Be5dF343C299f9424B96A22296A5D4adcb10   // [counter_addr, value, args_offset, args_size, ret_offset, ret_size]
+    gas                 // [gas, counter_addr, value, args_offset, args_size, ret_offset, ret_size]
+    call                // [successs]
+}
+
+// gas
+// address
+// value
+// argsOffset
+// argsSize
+// retOffset
+// retSize
